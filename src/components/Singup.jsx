@@ -1,5 +1,6 @@
 import axios from 'axios'
 import React, { useState } from 'react'
+import { notification } from 'antd'
 
 const Singup = ({ onSignup }) => {
     const [formData, setFormData] = useState({
@@ -16,7 +17,7 @@ const Singup = ({ onSignup }) => {
         e.preventDefault()
 
         const response = await axios.post("https://erneste-backend.onrender.com/users", formData)
-        alert(response.data.message)
+        notification.success({message:response.data.message})
         console(response.data)
     }
     return (
