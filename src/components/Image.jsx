@@ -2,100 +2,57 @@ import { AiOutlineLike } from "react-icons/ai";
 import { AiFillLike } from "react-icons/ai";
 import { AiTwotoneDelete } from "react-icons/ai";
 import { FaCommentDots } from "react-icons/fa";
-import { useEffect, useState } from "react";
-import axios from "axios";
+import { useState } from "react";
 import {Modal} from "antd";
-import { notification } from "antd";
 import {Button} from "antd";
+import useAddImage from "./hooks/add-image";
+import useAddComment from "./hooks/add-comment";
+import useDeleteImage from "./hooks/delete-image";
+import usAddLike from "./hooks/add-like-image";
+import useFetchImage from "./hooks/fetch-image";
 
 const Image = () => {
-    const [Images, setImages] = useState([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isModalAddOpen, setIsModaAddlOpen] = useState(false);
-    const [formData, setFormData] = useState({commentMessgae:""})
     const [selectedImageId, setSelectedImageId] = useState(null);
-    const [addImage,setAddImage]=useState(null)
-    const [title,setTitle]=useState("")
 
+    const {HandleAddImage,HandleAddImageChange,HandleTitleCange} = useAddImage()
+
+    const {HandleAddComment,HandleChange,formData} = useAddComment(selectedImageId)
+    const {handleDelete} = useDeleteImage(selectedImageId)
+    const {handleLike} = usAddLike(selectedImageId)
+    const {Images} = useFetchImage()
+    
+    
+    const onFinishDelete = (id) =>{
+        setSelectedImageId(id)
+        handleDelete()
+    }
+
+    const onFinishLike = (id) =>{
+        setSelectedImageId(id)
+        handleLike()
+    }
+
+    // this openModal is used to open modal of comment modal
     const openModal = (id) => {
         setSelectedImageId(id)
         setIsModalOpen(true);
     };
-
+    
+    // this openModal is used to open modal of adding image
     const openAddModal = ()=>{
         setIsModaAddlOpen(true)
     }
-    const cancelAddModal = ()=>{
-        setIsModaAddlOpen(false)
-    }
-    
+
+    // this is fuction used to cancel modal
     const closeModal = () => {
         setIsModalOpen(false);
         setSelectedImageId(null)
+        setIsModaAddlOpen(false)
     };
 
-    useEffect(() => {
-        const fetchImages = async () => {
-            const response = await axios.get("https://erneste-backend.onrender.com/image");
-            const data = response.data;
-            setImages(data);
-        };
-        fetchImages();
-    }, []);
-
-    const handleDelete = async (id) => {
-        const response = await axios.delete(`https://erneste-backend.onrender.com/image/${id}`);
-        notification.success({message:response.data.message})
-    };
-
-    const handleLike = async (id) => {
-        const token = localStorage.getItem("token");
-        const response = await axios.put(`https://erneste-backend.onrender.com/image/like/${id}`, {}, {
-            headers: {
-                "Content-Type": "application/json",
-                "auth": token
-            }
-        });
-        console.log(response.data.message);
-        notification.success({message:response.data.message})
-    };
-
-    const HandleChange = (e)=>{
-        const {name,value} = e.target
-        setFormData({
-            ...formData,
-            [name]:value
-        })
-    }
-
-    const HandleAddImageChange = (e)=>{
-        const file = e.target.files[0]
-        setAddImage(file)
-    }
-   const HandleTitleCange=(e)=>{
-        setTitle(e.target.value)
-    }
-
-    const formAddImage = new FormData()
-    formAddImage.append("image",addImage)
-    formAddImage.append("title",title)
-
-    const HandleAddComment = async (e) =>{
-        e.preventDefault()
-       const response = await axios.post(`https://erneste-backend.onrender.com/comment/${selectedImageId}`,formData)
-       console.log(response.data.message)
-       alert({message:response.data.message})
-    }
-
-    const HandleAddImage = async (e)=>{
-        e.preventDefault()
-
-        const response = await axios.post('https://erneste-backend.onrender.com/image',formAddImage)
-        console.log(response)
-        alert({message:response.message})
-
-    }
-
+   
     return (
         <>
           <div className="flex justify-center items-end gap-5 p-6">
@@ -108,7 +65,7 @@ const Image = () => {
                         <img className="w-full" src={image.image.url} alt="image" />
                         <div className="flex justify-center gap-2 space-x-3">
                             <div className="flex space-x-2">
-                                <div onClick={() => handleLike(image._id)}>
+                                <div onClick={() => onFinishLike(image._id)}>
                                     {image.like.length === 0 ? (
                                         <AiOutlineLike className="text-md text-blue-500" />
                                     ) : (
@@ -126,7 +83,7 @@ const Image = () => {
                             </div>
                             <button
                                 className="text-lg text-red-500"
-                                onClick={() => handleDelete(image._id)}
+                                onClick={() => onFinishDelete(image._id)}
                             >
                                 <AiTwotoneDelete />
                             </button>
@@ -135,7 +92,8 @@ const Image = () => {
                 ))}
             </div>
 
-            {/* Modal for Comments */}
+            {/* mpodol for comment */}
+            
             <Modal
                 open={isModalOpen}
                 onOk={closeModal}
@@ -153,10 +111,12 @@ const Image = () => {
                 </div>
             </Modal>
 
+             {/* model for apload image */}
+
             <Modal
              open={isModalAddOpen}
-             onCancel={cancelAddModal}
-             onOk={cancelAddModal}
+             onCancel={closeModal}
+             onOk={closeModal}
              footer={null}
              title="Add New Image"
             >
