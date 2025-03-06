@@ -1,7 +1,7 @@
 import { useState } from "react";
 import axios from "axios";
 
-const useAddImage = () =>{
+const useAddImage = (setImages) =>{
     const [addImage,setAddImage]=useState(null)
     const [title,setTitle]=useState("")
 
@@ -21,6 +21,8 @@ const useAddImage = () =>{
         e.preventDefault()
 
         const response = await axios.post('https://erneste-backend.onrender.com/image',formAddImage)
+        const data = response.data
+        setImages((prev) => [...prev, data]);
         console.log(response)
         alert({message:response.message})
 

@@ -22,6 +22,7 @@ const Login = ({ onLogin }) => {
         const token = response.data.token
         if (token) {
             localStorage.setItem("token", token)
+           
             notification.success({message:'success login',
                 placement:'topRight'
             })
